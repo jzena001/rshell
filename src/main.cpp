@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <sys/stat.h>
 #include <errno.h>
 using namespace std;
 /* This function parses the command line delineated by white space.
@@ -53,50 +54,148 @@ void  execute(char **argv, int& success)
     }
 }
 
+int test(char* flag, char* path) {
+    char bracket[] = "]";
+    struct stat sb;
+    
+    if(strpbrk(path, bracket)){
+        //fix: pop the bracket from path
+    }
+    
+    // cout << "flag: " << flag << endl;
+    // cout << "path: " << path << endl;
+    
+    if (stat(path, &sb) == -1) {
+        cout << "(False)" << endl;
+        return 0;
+    }
+    else if(!strcmp(flag, "-e")) {
+        cout << "(True)" << endl;
+        return 1;
+    }
+    else if(!strcmp(flag, "-f")){
+        if(S_ISREG(sb.st_mode)){
+            cout << "(True)" << endl;
+            return 1;
+        }
+        else {
+            cout << "(False)" << endl;
+            return 0;
+        }
+    }
+    else {
+        if(S_ISDIR(sb.st_mode)){
+            cout << "(True)" << endl;
+            return 1;
+        }
+        else {
+            cout << "(False)" << endl;
+            return 0;
+        }
+    }
+}
+
+void printCommands(char* commandLine, char* commandLineBackUp){
+    printf("Command Line A: %s \n", commandLine);
+    printf("Command Line B: %s \n", commandLineBackUp);
+    // printf("Single Command Line: %s \n\n", singleCommand);
+}
+
+void printComArray(char* arr[]) {
+    for(int i = 0; arr[i] != '\0'; i++) {
+        printf( "%s\n", arr[i]);
+    }
+}
+
 int main() {
     char commandLine[256];              //Command line input by user
     char commandLineBackUp[256];        //Copy of command line to make tokenizing work
-    char singleCommand[64];             //One executable and its arguments
+    // char singleCommand[64];             //One executable and its arguments
     char *sinCommand[64];               //singleCommand but tokenized
     int success = 1;                    //used to flag whether the last command succeeded
+    int dontskip = 1;
+    // int precedence = 0;
+    char paran[] = "(";
+    char endparan[] = ")";
+    char* p;
     
-//    char* executable;
+    // char* executable;
     
     while(1) {
         cout << "$ ";
         std::cin.getline(commandLine, 256);
         strcpy(commandLine, strtok(commandLine, "#"));
-        success = 1;
+        success = 1;  
+        dontskip = 1;
         
         while(commandLine[0] != '\0'){
             
             strcpy(commandLineBackUp, commandLine);
             
-            strcpy(singleCommand, strtok(commandLineBackUp, ";|&\n"));
+            strcpy(commandLineBackUp, strtok(commandLineBackUp, ";|&\n"));
+            
+            // printCommands(commandLine,commandLineBackUp);
             
             memmove(commandLine, commandLine+strlen(commandLineBackUp), strlen(commandLine));
-           
+            
+            // printCommands(commandLine, commandLineBackUp);
+            
             parseCom(commandLineBackUp, sinCommand);
+            
+            if(strpbrk(sinCommand[0], paran)) {
+                memmove(sinCommand[0], sinCommand[0]+1, strlen(sinCommand[0]));
+            }
+            
+            for(int i = 0; sinCommand[i] != '\0'; i++) {
+                p = strpbrk(sinCommand[i], endparan);
+                if(p){
+                    *p = '\0';
+                }
+            }
             
             if (strcmp(sinCommand[0], "exit") == 0)  
                    exit(0); 
-                   
-            if(success) 
-                execute(sinCommand, success);
+                  
+            // printComArray(sinCommand);
+            
+            // if test go to our function, else execute normally
+            if (strcmp(sinCommand[0], "test") == 0 || strcmp(sinCommand[0], "[") == 0)  { 
+                char flag[64];
+                char e[] = "-e";
+                strcpy(flag, sinCommand[1]); 
+                // cout << "gottem\n";
+                
+                if(strcmp(flag, "-e") == 0 || strcmp(flag, "-f") == 0|| strcmp(flag, "-d") == 0) {
+                    success = test(sinCommand[1], sinCommand[2]);
+                }
+                else {
+                    success = test(e, sinCommand[1]);
+                }
+                
+            }
+            else {
+                if(success && dontskip) 
+                    execute(sinCommand, success);
+            }
                 
             if(commandLine[0] == ';') {
-                memmove(commandLine, commandLine+2, strlen(commandLine));
+                memmove(commandLine, commandLine+1, strlen(commandLine));
                 success = 1;
+                dontskip = 1;
             }
             else if(commandLine[0] == '&' && commandLine[1] == '&') {
-                memmove(commandLine, commandLine+3, strlen(commandLine));
+                memmove(commandLine, commandLine+2, strlen(commandLine));
+                if(!dontskip)
+                    dontskip = 1;
             }
             else if(commandLine[0] == '|' && commandLine[1] == '|') {
-                memmove(commandLine, commandLine+3, strlen(commandLine));
-                if (success == 1) 
-                    success = 0;
-                else 
+                memmove(commandLine, commandLine+2, strlen(commandLine));
+                if (success == 0){
                     success = 1;
+                }
+                else {
+                    dontskip = 0;
+                }
             }
 
         }
