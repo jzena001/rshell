@@ -29,6 +29,8 @@ README.md
 
 hw2.txt
 
+hw3.txt
+
 ./src
 
 ./tests
@@ -47,6 +49,10 @@ single_command.sh
 multi_command.sh
 
 commented_command.sh
+
+test_test.sh
+
+precedence_test.sh
 
 exit.sh
 ```
@@ -75,8 +81,10 @@ This program is developed to write a simple command shell called "RShell."
 
 - Can call on multiple commands using connectors "&&" "||" and ";" 
 
+- Can check if the path exists and is a file or directory.
+
 - Have special built in command "exit" to exit RSHELL and return to your local SHELL
 
 Bugs
 ---
-1. Program has errors when a space is entered after a command and before a connector or a comment. 
+1. Gives an error when there are multiple parentheses. 
