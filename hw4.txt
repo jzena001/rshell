@@ -1,0 +1,5 @@
+name1=Matthew Lebouvier
+ucrnetid1=mlebo002
+name2=Joshua Zenarosa
+ucrnetid2=jzena001
+url=https://github.com/jzena001/rshell.git
