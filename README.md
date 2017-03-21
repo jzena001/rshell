@@ -54,6 +54,8 @@ test_test.sh
 
 precedence_test.sh
 
+redirection_piping.sh
+
 exit.sh
 ```
 

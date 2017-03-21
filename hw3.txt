@@ -1,4 +1,4 @@
-me1=Matthew Lebouvier
+name1=Matthew Lebouvier
 ucrnetid1=mlebo002
 name2=Joshua Zenarosa
 ucrnetid2=jzena001
